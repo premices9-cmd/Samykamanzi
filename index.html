@@ -1,2 +1,1289 @@
+<!DOCTYPE html>  <html lang="fr">    <head>    
+    <meta charset="UTF-8">    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">    
+    <meta name="apple-mobile-web-app-capable" content="yes">    
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">    
+    <title>MKA Pro Business V5.3.0 - Full Logic</title>    
+        <meta name="theme-color" content="#0f172a">  
+    <link rel="apple-touch-icon" href="logo.png">
+    <link rel="icon" href="logo.png">
 
-fjjgff
+    <meta name="mobile-web-app-capable" content="yes">  <style>    
+    body { font-family: 'Segoe UI', sans-serif; background: #0f172a; margin: 0; color: white; padding-bottom: 50px; }    
+    .container { background: white; color: black; margin: 10px; padding: 15px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }    
+    input, select, button { padding: 12px; margin: 5px 0; border-radius: 8px; border: 1px solid #cbd5e1; width: 100%; box-sizing: border-box; font-size: 15px; }    
+    button { cursor: pointer; background: #0f172a; color: white; font-weight: bold; border: none; transition: 0.2s; }    
+    button:active { transform: scale(0.96); opacity: 0.8; }    
+    .card { background: #f1f5f9; padding: 10px; margin: 8px 0; border-radius: 8px; border-left: 5px solid #0f172a; font-size: 13px; position: relative; }    
+    .card.negative { border-left: 5px solid #ef4444; color: #b91c1c; background: #fef2f2; }    
+    .hidden { display: none !important; }    
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }    
+    .vnc-box { background: linear-gradient(135deg, #1e293b, #0f172a); color: white; padding: 18px; border-radius: 15px; text-align: center; margin-bottom: 15px; border: 2px solid #facc15; }    
+    .vnc-val { font-size: 28px; font-weight: bold; color: #facc15; }    
+    .mixed-box { background: #f8fafc; border: 2px solid #1e293b; padding: 10px; border-radius: 10px; margin: 10px 0; }    
+    .change-box { background: #f0f9ff; border: 2px solid #0ea5e9; padding: 12px; border-radius: 12px; margin: 15px 0; }    
+    .admin-box { border: 2px solid #ef4444; padding: 15px; border-radius: 12px; margin-top: 20px; background: #fff1f2; color: #991b1b; }    
+    .label-sm { font-size: 11px; font-weight: bold; color: #64748b; margin-top: 5px; display: block; text-transform: uppercase; }    
+    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 9999; }    
+    .modal-content { background: white; color: black; padding: 20px; border-radius: 15px; width: 95%; max-height: 90vh; overflow-y: auto; }    
+    .btn-del { background: #ef4444; padding: 4px 8px; font-size: 10px; width: auto; position: absolute; right: 10px; top: 10px; color: white; border-radius: 5px; cursor: pointer; }    
+    .nav-hist { display: flex; overflow-x: auto; gap: 5px; margin-bottom: 15px; padding-bottom: 5px; }    
+    .nav-hist button { width: auto; font-size: 11px; white-space: nowrap; background: #64748b; padding: 8px 12px; }    
+    .nav-hist button.active { background: #0ea5e9; }    
+    .debt-alert { background: #fff7ed; border: 1px solid #ea580c; color: #9a3412; padding: 8px; border-radius: 8px; font-size: 12px; margin-bottom: 5px; }  
+</style>
+
+</head>    
+<body style="margin:0; padding:0;">
+    <div style="text-align:center; padding: 20px 10px; background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); border-bottom: 3px solid #facc15;">
+        <img src="logo.png" 
+             alt="Ets SAKAM" 
+             style="width: 85px; height: 85px; border-radius: 20px; border: 2px solid #facc15; box-shadow: 0 8px 15px rgba(0,0,0,0.5);">
+        <h1 style="margin: 12px 0 0 0; font-size: 22px; color: #facc15; text-transform: uppercase; letter-spacing: 1px; font-weight: 800;">
+            Ets SAKAM
+        </h1>
+    </div>
+
+    <div class="container">    
+    <div id="loginSection">    
+        <h2 style="text-align:center">Connexion</h2>    
+        <input type="password" id="pinInput" placeholder="Code PIN Accès">    
+        <button onclick="login()">OUVRIR SESSION</button>    
+    </div>    <div id="appSection" class="hidden">    
+    <div class="vnc-box">    
+        <span style="font-size: 11px; opacity: 0.8;">VALEUR NETTE COMPTABLE (VNC)</span><br>    
+        <div class="vnc-val" id="totalVNC">0.00 $</div>    
+        <div style="font-size: 10px;">Taux: <span id="rateM"></span> | Stock: <span id="totalStock">0</span></div>    
+    </div>    
+
+    <div style="display:flex; justify-content:space-between; margin-bottom:15px;">    
+        <button onclick="logout()" style="background:#ef4444; width:auto; padding:8px 15px;">QUITTER</button>    
+        <div style="text-align:right; font-size: 13px;">    
+            <strong>Tiroir :</strong> <span id="caisseUSD" style="color:#16a34a">0</span>$ | <span id="caisseCDF" style="color:#16a34a">0</span>FC    
+        </div>    
+    </div>    
+
+    <div id="operatorBalances"></div>    
+
+    <div class="change-box">    
+        <h4 style="margin:0 0 10px 0; color:#0369a1;">🔄 Change & Transfert</h4>    
+        <select id="srcWallet" onchange="calcDest()"></select>    
+        <div class="grid-2">    
+            <input type="number" id="srcAmt" placeholder="Montant" oninput="calcDest()">    
+            <select id="srcCurr" onchange="calcDest()"><option value="USD">USD</option><option value="CDF">CDF</option></select>    
+        </div>    
+        <label class="label-sm">Vers :</label>    
+        <select id="destWallet"></select>    
+        <div class="grid-2">    
+            <input type="number" id="destAmt" readonly style="background:#e2e8f0; font-weight:bold">    
+            <select id="destCurr" onchange="calcDest()"><option value="CDF">CDF</option><option value="USD">USD</option></select>    
+        </div>    
+        <input type="text" id="transferMotif" placeholder="Motif Transfert">    
+        <button onclick="executeGlobalChange()" style="background:#0ea5e9; width:100%;">VALIDER TRANSFERT</button>    
+    </div>    
+
+    <hr>    
+    <div id="debtSettlementBox" style="background:#fefce8; border:2px solid #eab308; padding:15px; border-radius:12px; margin-bottom:15px;">  
+    <h4 style="margin:0 0 5px 0; color:#854d0e;">💰 Règlement Précis des Dettes</h4>  
+    <div id="debtStatus" class="debt-alert hidden"></div>  
+    
+    <div class="grid-2">
+        <select id="settleOpIdx" onchange="checkDebtBalance()"></select>    
+        <input type="text" id="debtPersonName" placeholder="NOM DU CLIENT" oninput="checkDebtBalance()">  
+    </div>
+
+    <div style="background:#fef9c3; border:1px dashed #eab308; padding:10px; border-radius:8px; margin-top:10px;">
+        <span class="label-sm" style="color:#a16207;">Paiement sur Dette USD ($)</span>
+        <div class="grid-2">
+            <input type="number" id="payOnUsd_USD" placeholder="Payé en $">
+            <input type="number" id="payOnUsd_CDF" placeholder="Payé en FC">
+        </div>
+    </div>
+
+    <div style="background:#fef9c3; border:1px dashed #eab308; padding:10px; border-radius:8px; margin-top:8px;">
+        <span class="label-sm" style="color:#a16207;">Paiement sur Dette CDF (FC)</span>
+        <div class="grid-2">
+            <input type="number" id="payOnCdf_USD" placeholder="Payé en $">
+            <input type="number" id="payOnCdf_CDF" placeholder="Payé en FC">
+        </div>
+    </div>
+
+    <label class="label-sm" style="color:#16a34a; margin-top:10px;">Destination des fonds :</label>  
+    <select id="settleDest" style="border: 1px solid #16a34a;"></select>  
+    
+    <button onclick="settleAccountV2()" style="background:#eab308; color:black; font-weight:bold; margin-top:10px;">VALIDER LE RÈGLEMENT DÉTAILLÉ</button>    
+    </div>
+
+    <hr>    
+    <h2>Opérations Clients</h2>    
+    <div class="grid-2">    
+        <select id="operatorSelect" onchange="togglePaySim()"></select>    
+        <select id="typeSelect" onchange="updateDefaultStockMove()"></select>    
+    </div>    
+    <div class="grid-2">    
+        <input type="number" id="amount" placeholder="Montant Opération">    
+        <input type="number" id="stkMove" placeholder="Stock (+/-)" value="0">    
+    </div>    
+    <select id="currency" style="margin-bottom: 10px;"><option value="USD">USD</option><option value="CDF">CDF</option></select>    
+
+    <div id="mixedFields" class="mixed-box">    
+        <label class="label-sm" style="color:#1e293b">Détail Cash (Tiroir) :</label>    
+        <div class="grid-2">    
+            <input type="number" id="mixUSD" placeholder="Cash $">    
+            <div style="display:flex; gap:2px;">    
+                <input type="number" id="mixCDF" placeholder="Cash FC">    
+                <button onclick="autoCalcMix()" style="width:45px; background:#1e293b; font-size:10px;">CALC</button>    
+            </div>    
+        </div>    
+        <div class="grid-2" style="margin-top:5px;">    
+            <input type="number" id="commUSD" placeholder="+ Frais $">    
+            <input type="number" id="commCDF" placeholder="+ Frais FC">    
+        </div>    
+    </div>    
+
+    <label class="label-sm">Mode de Règlement :</label>    
+    <select id="payMode" onchange="togglePaySim()">    
+        <option value="cash">Paiement Cash (Tiroir)</option>    
+        <option value="virtuel">Via une autre SIM (Inter-SIM)</option>    
+        <option value="depense">Dépense (Sortie SIM)</option>    
+        <option value="dette_client">Dette Client (Sortie non payée)</option>    
+        <option value="dette_moi">Dette Moi (Entrée non payée)</option>    
+    </select>    
+        
+    <div id="paySimBox" class="hidden" style="margin-top:5px;">    
+        <label class="label-sm" style="color:#8b5cf6;">Choisir la SIM source :</label>    
+        <select id="paySimSelect" style="border: 2px solid #8b5cf6;"></select>    
+    </div>    
+
+    <div id="debtNameBox" class="hidden">  
+        <label class="label-sm" style="color:#ef4444;">Nom de la personne (Dette) :</label>  
+        <input type="text" id="personName" placeholder="Ex: Maman Rose, Agent Airtel...">  
+    </div>  
+        
+    <input type="text" id="motif" placeholder="Référence / Client" oninput="togglePaySim()">    
+    <button onclick="addTransaction()" style="background:#16a34a; margin-top:10px;">ENREGISTRER L'OPÉRATION</button>    
+    <button onclick="showFullHistory('general')" style="background:#64748b; margin-top:10px;">HISTORIQUES DÉTAILLÉS</button>    
+
+    <div id="adminSection" class="hidden">    
+        <div class="admin-box">    
+            <h3>🔧 Configuration Admin</h3>    
+            <div style="background:#fee2e2; padding:10px; border-radius:8px; margin-bottom:10px; color:black; border:1px solid #ef4444;">    
+                <h4>🔐 Sécurité & Codes PIN</h4>    
+                <div class="grid-2">    
+                    <div><label class="label-sm">PIN Admin</label><input type="text" id="newPinAdmin" placeholder="Code Admin"></div>    
+                    <div><label class="label-sm">PIN Employé</label><input type="text" id="newPinUser" placeholder="Code Employé"></div>    
+                </div>    
+                <button onclick="updatePins()" style="background:#b91c1c">CHANGER LES CODES</button>    
+            </div>    
+
+            <div style="background:white; padding:10px; border-radius:8px; margin-bottom:10px; color:black;">    
+                <h4>Créer Type d'Action</h4>    
+                <input type="text" id="newTypeName" placeholder="Nom (ex: Vente SIM)">    
+                <div class="grid-2">    
+                    <label class="label-sm">SIM (-/+)</label>    
+                    <select id="impO"><option value="-1">SIM (-)</option><option value="1">SIM (+)</option><option value="0">SIM (0)</option></select>    
+                </div>    
+                <div class="grid-2">    
+                    <label class="label-sm">Caisse (-/+)</label>    
+                    <select id="impC"><option value="1">Caisse (+)</option><option value="-1">Caisse (-)</option><option value="0">Caisse (0)</option></select>    
+                </div>    
+                <div class="grid-2">    
+                    <label class="label-sm">Impact Stock</label>    
+                    <select id="impS"><option value="0">Aucun (0)</option><option value="-1">Vente (-1)</option><option value="1">Achat (+1)</option></select>    
+                </div>    
+                <button onclick="addType()" style="background:#0f172a; margin-top:5px;">CRÉER TYPE</button>    
+                <div id="adminTypeList" style="margin-top:10px; font-size:11px;"></div>    
+            </div>    
+
+            <div style="background:white; padding:10px; border-radius:8px; margin-bottom:10px; color:black;">    
+                <h4>Paramètres Généraux</h4>    
+                <input type="number" id="newTaux" placeholder="Taux">    
+                <div class="grid-2">    
+                    <input type="number" id="editCashUSD" placeholder="Caisse $">    
+                    <input type="number" id="editCashCDF" placeholder="Caisse FC">    
+                </div>    
+                <button onclick="updateAdminBasics()" style="background:#0f172a">APPLIQUER</button>    
+                </div>    
+
+            <div style="background:white; padding:10px; border-radius:8px; margin-bottom:10px; color:black; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">    
+                <h4 style="margin-top:0; margin-bottom:10px; color:#b91c1c;">Nouveau Compte</h4>    
+    
+                <input type="text" id="newOpName" placeholder="Nom du compte (ex: Airtel 01)" style="width:100%; margin-bottom:8px; padding:8px; border:1px solid #ccc; border-radius:4px;">    
+    
+                <div class="grid-2" style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px;">    
+                    <input type="number" id="initUSD" placeholder="Solde Initial $" step="any" style="padding:8px; border:1px solid #ccc; border-radius:4px;">    
+                    <input type="number" id="initCDF" placeholder="Solde Initial FC" step="any" style="padding:8px; border:1px solid #ccc; border-radius:4px;">    
+               </div>    
+    
+               <div class="grid-2" style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:10px;">    
+                  <input type="number" id="initStock" placeholder="Stock SIM initial" step="any" style="padding:8px; border:1px solid #ccc; border-radius:4px;">    
+                  <input type="number" id="initPrice" placeholder="Prix Achat SIM $" step="any" style="padding:8px; border:1px solid #ccc; border-radius:4px;">    
+               </div>    
+    
+               <button onclick="addOperator()" style="background:#b91c1c; color:white; width:100%; padding:10px; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">
+        🚀 CRÉER LE COMPTE
+                </button>    
+               </div>
+    
+               <div id="adminOpEditList" style="margin-top:10px; color:black;"></div>    
+        </div>    
+    </div>    
+</div>
+
+</div>    <div id="historyModal" class="modal hidden">    
+    <div class="modal-content">    
+        <button onclick="closeHistory()" style="background:#ef4444; float:right;">X</button>    
+        <button onclick="exportHistory()" style="background:#16a34a; float:left; width:auto; padding:8px 15px;">TXT</button>    
+        <div style="clear:both;"></div>    
+        <h2 id="histTitle" style="text-align:center; margin:10px 0;">Historique</h2>    
+        <div class="nav-hist">    
+            <button id="btn-h-general" onclick="showFullHistory('general')">GÉNÉRAL</button>    
+            <button id="btn-h-ventes" onclick="showFullHistory('ventes')">VENTES</button>    
+            <button id="btn-h-dette_client" onclick="showFullHistory('dette_client')">DETTES CLIENTS</button>    
+            <button id="btn-h-dette_moi" onclick="showFullHistory('dette_moi')">DETTES MOI</button> 
+            <button id="btn-h-depenses" onclick="showFullHistory('depenses')">DÉPENSES</button>
+
+        </div>    
+        <div id="fullHistoryList"></div>    
+    </div>    
+</div>    <script type="module">    
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";    
+    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";    
+  
+    const firebaseConfig = {
+        apiKey: "AIzaSyAU6KYMj6dooqJKAljcxB8xZdwS9L3hwHs",
+        authDomain: "est-sakam.firebaseapp.com",
+        projectId: "est-sakam",
+        storageBucket: "est-sakam.firebasestorage.app",
+        messagingSenderId: "1042835070051",
+        appId: "1:1042835070051:web:737ebbc885e9fa30f5ac56",
+        databaseURL: "https://est-sakam-default-rtdb.firebaseio.com" // Vérifie bien cette URL dans ta console Firebase
+    };    
+  
+    const app = initializeApp(firebaseConfig);    
+    const db = getDatabase(app);
+    
+    let data = { caisse:{USD:0, CDF:0}, operators:[], types:[], transactions:[], taux:2800, config: { pinAdmin: "1234", pinUser: "0000" }, debts: {} };    
+  
+    onValue(ref(db, 'sakam_data'), (snap) => {     
+        if(snap.val()) {     
+            data = snap.val();     
+            if(!data.transactions) data.transactions = [];     
+            if(!data.types) data.types = [];  
+            if(!data.operators) data.operators = [];  
+            if(!data.config) data.config = { pinAdmin: "1234", pinUser: "0000" };  
+            if(!data.debts) data.debts = {};  
+            render();     
+        }     
+    });    
+        
+    const save = () => set(ref(db, 'sakam_data'), data);    
+    const fmt = (n) => parseFloat(n || 0).toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).replace(/,/g, '.');    
+    const normalize = (str) => str ? str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim() : "";    
+  
+    window.login = () => {    
+        const p = document.getElementById("pinInput").value;    
+        if(p === data.config.pinAdmin) {    
+            document.getElementById("loginSection").classList.add("hidden");    
+            document.getElementById("appSection").classList.remove("hidden");    
+            document.getElementById("adminSection").classList.remove("hidden");    
+            document.getElementById("newPinAdmin").value = data.config.pinAdmin;    
+            document.getElementById("newPinUser").value = data.config.pinUser;    
+        } else if(p === data.config.pinUser) {    
+            document.getElementById("loginSection").classList.add("hidden");    
+            document.getElementById("appSection").classList.remove("hidden");    
+            document.getElementById("adminSection").classList.add("hidden");    
+        } else { alert("Code PIN Incorrect"); }    
+    };    
+  
+    window.logout = () => location.reload();    
+  
+    window.updatePins = () => {    
+        const pa = document.getElementById("newPinAdmin").value, pu = document.getElementById("newPinUser").value;    
+        if(pa && pu) { data.config.pinAdmin = pa; data.config.pinUser = pu; save(); alert("PIN mis à jour !"); }    
+    };  
+  
+    window.togglePaySim = () => {    
+        const mode = document.getElementById("payMode").value;    
+        const motif = normalize(document.getElementById("motif").value);  
+        const opIdx = document.getElementById("operatorSelect").value;  
+        const opName = data.operators[opIdx] ? normalize(data.operators[opIdx].name) : "";  
+        document.getElementById("paySimBox").classList.toggle("hidden", mode !== "virtuel");  
+        const isDebt = mode.includes("dette") || mode === "depense" || motif.includes("dette") || opName.includes("dette client") || opName.includes("dette moi");  
+        document.getElementById("debtNameBox").classList.toggle("hidden", !isDebt);  
+    };    
+  
+    window.checkDebtBalance = () => {  
+    const opIdx = document.getElementById("settleOpIdx").value;  
+    const op = data.operators[opIdx];  
+    const personRaw = document.getElementById("debtPersonName").value.trim();  
+    const statusEl = document.getElementById("debtStatus");  
+    
+    if(!personRaw || !op) { 
+        statusEl.classList.add("hidden"); 
+        return; 
+    }  
+
+    const person = normalize(personRaw);
+    
+    // --- CORRECTION : Déterminer le type de dette selon l'opérateur ---
+    let typeDette = "dette client"; // Par défaut
+    if(normalize(op.name).includes("moi") || normalize(op.name).includes("fournisseur")) {
+        typeDette = "dette moi";
+    }
+
+    const debtKey = `${normalize(typeDette)}_${person}`;  
+    const debt = data.debts[debtKey] || { USD: 0, CDF: 0 };  
+    
+    // Seuil de tolérance pour éviter les centimes inutiles
+    const aDette = (Math.abs(debt.USD) > 0.01 || Math.abs(debt.CDF) > 50);
+
+    if(aDette) {
+        statusEl.innerHTML = `
+            <div style="text-align:center; padding:10px;">
+                <div style="font-size:11px; color:#991b1b; text-transform:uppercase; font-weight:bold;">${typeDette}</div>
+                <div style="margin:5px 0;">⚠️ <b>${personRaw.toUpperCase()}</b> doit :</div>
+                <div style="font-size:22px; color:#b91c1c; font-weight:900;">${fmt(debt.USD)} $</div>
+                <div style="font-size:18px; color:#b91c1c; font-weight:bold;">${fmt(debt.CDF)} FC</div>
+            </div>`;  
+        statusEl.style.background = "#fee2e2"; 
+        statusEl.style.border = "2px solid #ef4444";
+        statusEl.style.borderRadius = "12px";
+        statusEl.style.color = "#991b1b";
+        statusEl.classList.remove("hidden");
+    } else {
+        statusEl.innerHTML = `
+            <div style="text-align:center; padding:10px;">
+                ✅ <b>${personRaw.toUpperCase()}</b><br>
+                <span style="font-size:12px;">Aucune dette enregistrée ici.</span>
+            </div>`;
+        statusEl.style.background = "#dcfce7"; 
+        statusEl.style.border = "2px solid #22c55e";
+        statusEl.style.borderRadius = "12px";
+        statusEl.style.color = "#166534";
+        statusEl.classList.remove("hidden");
+    }
+};
+
+    window.autoCalcMix = () => {    
+        const total = parseFloat(document.getElementById("amount").value) || 0;    
+        const usd = parseFloat(document.getElementById("mixUSD").value) || 0;    
+        const t = parseFloat(data.taux) || 1;    
+        const reste = total - usd;    
+        if(reste > 0) document.getElementById("mixCDF").value = Math.round(reste * t);    
+    };    
+  
+ function createTransaction({  
+    typeNom,  
+    operator,  
+    mode,  
+    amt,  
+    cur,  
+    person,  
+    stk,
+    mix // Nouveau paramètre pour le multi-devise
+}){  
+    const impacts = {  
+        caisse: { USD:0, CDF:0 },  
+        operator: { USD:0, CDF:0 },  
+        dette: { USD:0, CDF:0 },  
+        stock: stk || 0  
+    };  
+
+    let typeDette = "";
+    if(mode === "dette_client") typeDette = "dette client";
+    else if(mode === "dette_moi") typeDette = "dette moi";
+    else {
+        const opNorm = normalize(operator);
+        if(opNorm.includes("dette client")) typeDette = "dette client";
+        else if(opNorm.includes("dette moi")) typeDette = "dette moi";
+    }
+
+    // On utilise les valeurs mixtes si elles existent, sinon on prend le montant simple
+    const finalUSD = (mix && mix.USD) ? mix.USD : (cur === "USD" ? amt : 0);
+    const finalCDF = (mix && mix.CDF) ? mix.CDF : (cur === "CDF" ? amt : 0);
+
+    // Si c'est un RÈGLEMENT, on inverse l'impact pour diminuer la dette
+    const isReglement = (typeNom === "REGLEMENT");
+    const mult = isReglement ? -1 : 1;
+
+    if(typeDette && person){
+        impacts.dette.USD = finalUSD * mult;
+        impacts.dette.CDF = finalCDF * mult;
+    }
+
+    return {  
+        id: Date.now(),  
+        typeNom,  
+        operator,  
+        mode,  
+        amt: (cur === "USD" ? finalUSD : finalCDF), 
+        cur,  
+        person,  
+        typeDette,
+        impacts,
+        // On stocke les valeurs réelles pour l'historique
+        realUSD: finalUSD,
+        realCDF: finalCDF
+    };  
+}
+
+    function applyImpacts(t, reverse = false) {
+    const factor = reverse ? -1 : 1;
+
+    if (!t) return;
+
+    // 1. GESTION DE LA CAISSE
+    if (t.impacts && t.impacts.caisse) {
+        data.caisse.USD += (t.impacts.caisse.USD || 0) * factor;
+        data.caisse.CDF += (t.impacts.caisse.CDF || 0) * factor;
+    }
+
+    // 2. GESTION DE L'OPÉRATEUR SOURCE (Ex: Airtel, Orange)
+    let op = data.operators.find(o => o.name === t.operator);
+    if (op && t.impacts && t.impacts.operator) {
+        op.USD += (t.impacts.operator.USD || 0) * factor;
+        op.CDF += (t.impacts.operator.CDF || 0) * factor;
+
+        if (t.stk !== undefined && t.stk !== 0) {
+            op.stock = (parseFloat(op.stock) || 0) + (parseFloat(t.stk) * factor);
+            op.stock = Math.round(op.stock * 100) / 100;
+        }
+    }
+
+    // 3. LOGIQUE DÉPENSES
+    if (t.isDepense && t.depenseTarget) {
+        let depOp = data.operators.find(o => o.name === t.depenseTarget);
+        if (depOp) {
+            // On s'assure que le montant de la dépense est bien celui défini dans la transaction
+            const valUSD = t.realUSD || 0;
+            const valCDF = t.realCDF || 0;
+            depOp.USD += valUSD * factor;
+            depOp.CDF += valCDF * factor;
+        }
+    }
+
+    // 4. GESTION DES DETTES (Snapshot Critique)
+    if (t.person && t.typeDette) {
+        const key = `${normalize(t.typeDette)}_${normalize(t.person)}`;
+        if (!data.debts[key]) { data.debts[key] = { USD: 0, CDF: 0 }; }
+
+        const detteImpact = t.impacts?.dette || {};
+        
+        // Correction ici : Utilisation de valeurs par défaut si indéfini
+        let impUSD = (t.isReglement ? (detteImpact.USD || 0) : (t.detteUSD || 0)) * factor;
+        let impCDF = (t.isReglement ? (detteImpact.CDF || 0) : (t.detteCDF || 0)) * factor;
+
+        data.debts[key].USD += impUSD;
+        data.debts[key].CDF += impCDF;
+
+        // --- SÉCURITÉ ARRONDIS (Évite les 0.0000001) ---
+        data.debts[key].USD = Math.round(data.debts[key].USD * 100) / 100;
+        data.debts[key].CDF = Math.round(data.debts[key].CDF);
+
+        // 5. COMPTE GLOBAL (Opérateur "Dette Client" ou "Dette Moi")
+        let opG = data.operators.find(o => normalize(o.name).includes(normalize(t.typeDette)));
+        if (opG && opG.name !== t.operator) {
+            opG.USD += impUSD;
+            opG.CDF += impCDF;
+        }
+    }
+}
+
+window.addTransaction = () => {  
+    const opI = document.getElementById("operatorSelect").value;
+    const tyI = document.getElementById("typeSelect").value;
+    const amtSIM = parseFloat(document.getElementById("amount").value) || 0; 
+    const cur = document.getElementById("currency").value;
+    
+    const mixUSD = parseFloat(document.getElementById("mixUSD").value) || 0;
+    const mixCDF = parseFloat(document.getElementById("mixCDF").value) || 0;
+    const commUSD = parseFloat(document.getElementById("commUSD").value) || 0;
+    const commCDF = parseFloat(document.getElementById("commCDF").value) || 0;
+    
+    const mode = document.getElementById("payMode").value;
+    const motif = document.getElementById("motif").value;
+    const person = document.getElementById("personName").value.trim();
+    const stkM = parseFloat(document.getElementById("stkMove").value) || 0; 
+    
+    const ty = data.types[tyI];
+    const op = data.operators[opI];
+
+    if(!ty || !op) return;
+
+    // Détection automatique du type de dette basée sur l'opérateur OU le mode
+    let typeDetteDetecte = "";
+    if (mode === "dette_client" || normalize(op.name).includes("client")) {
+        typeDetteDetecte = "dette client";
+    } else if (mode === "dette_moi" || normalize(op.name).includes("moi")) {
+        typeDetteDetecte = "dette moi";
+    }
+
+    const t = createTransaction({
+        typeNom: ty.name,
+        operator: op.name, 
+        mode,
+        amt: amtSIM, 
+        cur,
+        person,
+        stk: stkM, 
+        mix: { USD: mixUSD, CDF: mixCDF } 
+    });
+
+    t.impacts.virtuel = { opIdx: null, USD: 0, CDF: 0 };
+    t.stk = stkM; 
+    t.typeDette = typeDetteDetecte; // On force le type de dette détecté
+
+    if (mode === "depense") {
+        const depOp = data.operators.find(o => normalize(o.name).toLowerCase().includes("depense"));
+        if (!depOp) { alert("Erreur : Aucun compte 'depense' trouvé."); return; }
+        t.isDepense = true;
+        t.depenseTarget = depOp.name;
+        const impactDirection = (parseInt(ty.impO) || 0);
+        t.impacts.operator.USD = (cur === "USD" ? amtSIM : 0) * impactDirection;
+        t.impacts.operator.CDF = (cur === "CDF" ? amtSIM : 0) * impactDirection;
+        t.realUSD = Math.abs(t.impacts.operator.USD);
+        t.realCDF = Math.abs(t.impacts.operator.CDF);
+        if (cur === "USD") { depOp.USD = (depOp.USD || 0) + t.realUSD; } 
+        else { depOp.CDF = (depOp.CDF || 0) + t.realCDF; }
+        t.impacts.caisse.USD = mixUSD + commUSD; 
+        t.impacts.caisse.CDF = mixCDF + commCDF;
+        
+    } else if (mode === "virtuel") {
+        const paySimIdx = document.getElementById("paySimSelect").value;
+        const simSource = data.operators[paySimIdx];
+        if (simSource) {
+            const vUSD = (cur === "USD" ? amtSIM : 0);
+            const vCDF = (cur === "CDF" ? amtSIM : 0);
+            simSource.USD -= vUSD;
+            simSource.CDF -= vCDF;
+            t.impacts.virtuel = { opIdx: paySimIdx, USD: vUSD, CDF: vCDF };
+        }
+        t.impacts.caisse.USD = commUSD;
+        t.impacts.caisse.CDF = commCDF;
+        t.impacts.operator.USD = (cur === "USD" ? amtSIM : 0) * (parseInt(ty.impO) || 0);
+        t.impacts.operator.CDF = (cur === "CDF" ? amtSIM : 0) * (parseInt(ty.impO) || 0);
+
+    } else if (mode === "dette_client" || mode === "dette_moi") {
+        t.isDette = true; 
+        t.impacts.operator.USD = (cur === "USD" ? amtSIM : 0) * (parseInt(ty.impO) || 0);
+        t.impacts.operator.CDF = (cur === "CDF" ? amtSIM : 0) * (parseInt(ty.impO) || 0);
+        t.impacts.caisse.USD = mixUSD + commUSD;
+        t.impacts.caisse.CDF = mixCDF + commCDF;
+        t.detteUSD = (cur === "USD" ? amtSIM : 0) - mixUSD;
+        t.detteCDF = (cur === "CDF" ? amtSIM : 0) - mixCDF;
+
+    } else {
+        const dirCaisse = (parseInt(ty.impC) || 0);
+        t.impacts.operator.USD = (cur === "USD" ? amtSIM : 0) * (parseInt(ty.impO) || 0);
+        t.impacts.operator.CDF = (cur === "CDF" ? amtSIM : 0) * (parseInt(ty.impO) || 0);
+        t.impacts.caisse.USD = (mixUSD * dirCaisse) + commUSD;
+        t.impacts.caisse.CDF = (mixCDF * dirCaisse) + commCDF;
+        // Si on utilise l'opérateur principal Dette, on calcule l'impact dette même en mode normal
+        if (typeDetteDetecte) {
+            t.detteUSD = (cur === "USD" ? amtSIM : 0) * (parseInt(ty.impO) || 0);
+            t.detteCDF = (cur === "CDF" ? amtSIM : 0) * (parseInt(ty.impO) || 0);
+        }
+    }
+
+    applyImpacts(t);
+
+    // 🔥 LOGIQUE DE CAPTURE AMÉLIORÉE 🔥
+    // On capture le solde dès qu'il y a un nom de personne et un type de dette détecté
+    if (person && typeDetteDetecte) {
+        const key = `${normalize(typeDetteDetecte)}_${normalize(person)}`;
+        const finalDebt = data.debts[key] || { USD: 0, CDF: 0 };
+        t.snapshotDette = { USD: finalDebt.USD, CDF: finalDebt.CDF };
+    }
+
+    const newEntry = {
+        ...t,
+        person: person,
+        date: new Date().toLocaleString(),
+        desc: `${mode === "depense" ? 'DÉPENSE' : ty.name} - ${op.name} (${person ? 'NOM: '+person+' | ' : ''}${motif})`,
+        amtSIM: amtSIM, 
+        curSIM: cur,
+        usdCash: mixUSD,
+        cdfCash: mixCDF,
+        commission: { usd: commUSD, cdf: commCDF }
+    };
+
+    data.transactions.unshift(newEntry);
+    save();
+    alert("Opération enregistrée !");
+    render();
+    
+    ["amount","mixUSD","mixCDF","commUSD","commCDF","motif","personName", "stkMove"].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.value = "";
+    });
+};
+
+ window.settleAccountV2 = () => {
+
+    const opIdx = document.getElementById("settleOpIdx").value;
+    const person = document.getElementById("debtPersonName").value.trim();
+    const destIdx = document.getElementById("settleDest").value;
+
+    const opDette = data.operators[opIdx];
+    const taux = parseFloat(data.taux) || 1;
+
+    const pOnUsd_USD = parseFloat(document.getElementById("payOnUsd_USD").value) || 0;
+    const pOnUsd_CDF = parseFloat(document.getElementById("payOnUsd_CDF").value) || 0;
+    const pOnCdf_USD = parseFloat(document.getElementById("payOnCdf_USD").value) || 0;
+    const pOnCdf_CDF = parseFloat(document.getElementById("payOnCdf_CDF").value) || 0;
+
+    if (!opDette || !person) {
+        alert("Sélectionnez un opérateur et entrez le nom de la personne.");
+        return;
+    }
+
+    // --- TYPE DETTE ---
+    const isMoi = normalize(opDette.name).includes("moi");
+    const typeDette = isMoi ? "dette moi" : "dette client";
+    const modePourFiltre = isMoi ? "dette_moi" : "dette_client";
+
+    const key = `${normalize(typeDette)}_${normalize(person)}`;
+    const oldDebt = JSON.parse(JSON.stringify(data.debts[key] || { USD: 0, CDF: 0 }));
+
+    // --- CALCULS ---
+    const reductionUSD = pOnUsd_USD + (pOnUsd_CDF / taux);
+    const reductionCDF = pOnCdf_CDF + (pOnCdf_USD * taux);
+
+    const totalCashUSD = pOnUsd_USD + pOnCdf_USD;
+    const totalCashCDF = pOnUsd_CDF + pOnCdf_CDF;
+
+    if (totalCashUSD === 0 && totalCashCDF === 0) {
+        alert("Veuillez saisir au moins un montant.");
+        return;
+    }
+
+    // 🔥 IMPORTANT : opérateur = destination (PAS dette)
+    const operatorName = destIdx === "caisse"
+        ? "CAISSE"
+        : (data.operators[destIdx]?.name || "INCONNU");
+
+    const destName = operatorName;
+
+    // --- TRANSACTION ---
+    const t = createTransaction({
+        typeNom: "REGLEMENT",
+        operator: operatorName,
+        mode: modePourFiltre,
+        amt: totalCashUSD,
+        cur: "USD",
+        person,
+        mix: { USD: totalCashUSD, CDF: totalCashCDF }
+    });
+
+    t.isReglement = true;
+    t.typeDette = typeDette;
+
+    const direction = isMoi ? -1 : 1;
+
+    // --- IMPACT DETTE ---
+    t.impacts.dette = {
+        USD: -reductionUSD,
+        CDF: -reductionCDF
+    };
+
+    // --- IMPACT DESTINATION (CENTRALISÉ) ---
+    if (destIdx === "caisse") {
+        t.impacts.caisse = {
+            USD: totalCashUSD * direction,
+            CDF: totalCashCDF * direction
+        };
+    } else {
+        t.impacts.operator = {
+            USD: totalCashUSD * direction,
+            CDF: totalCashCDF * direction
+        };
+    }
+
+    // ✅ PAS de modification directe des opérateurs ici !
+
+    // --- APPLY ---
+    applyImpacts(t);
+
+    // 🔥 MODIFICATION ICI : Capture du nouveau solde pour l'historique
+    const newDebt = data.debts[key] || { USD: 0, CDF: 0 };
+    t.snapshotDette = { USD: newDebt.USD, CDF: newDebt.CDF };
+
+    // --- HISTORIQUE ---
+    data.transactions.unshift({
+        ...t,
+        date: new Date().toLocaleString(),
+        desc: `RÈGLEMENT: ${person.toUpperCase()} (${typeDette}) vers ${destName}`,
+        debtBefore: oldDebt,
+        debtAfter: newDebt, // Gardé pour compatibilité
+        payDetail: {
+            onUsd: { usd: pOnUsd_USD, cdf: pOnUsd_CDF },
+            onCdf: { usd: pOnCdf_USD, cdf: pOnCdf_CDF }
+        },
+        usdCash: totalCashUSD,
+        cdfCash: totalCashCDF
+    });
+
+    save();
+
+    alert(`Règlement de ${person} vers ${destName} enregistré !`);
+
+    render();
+
+    // --- RESET ---
+    [
+        "payOnUsd_USD",
+        "payOnUsd_CDF",
+        "payOnCdf_USD",
+        "payOnCdf_CDF",
+        "debtPersonName"
+    ].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = "";
+    });
+};
+
+    // RESTAURATION DE LA LOGIQUE D'HISTORIQUE PAR MOTS-CLÉS 
+window.showFullHistory = (filter) => {     
+    const isAdmin = !document.getElementById("adminSection").classList.contains("hidden");    
+    const list = document.getElementById("fullHistoryList");  
+  
+    document.querySelectorAll(".nav-hist button").forEach(b => b.classList.remove("active"));    
+    if(document.getElementById("btn-h-" + filter)) {
+        document.getElementById("btn-h-" + filter).classList.add("active");    
+    }
+  
+    let filtered = data.transactions;    
+  
+    // --- FILTRES ---
+    if(filter === 'ventes') {  
+        filtered = data.transactions.filter(t =>   
+            normalize(t.typeNom || "").includes("vente") ||   
+            normalize(t.desc || "").includes("vente")  
+        );  
+    }   
+    else if(filter === 'dette_client') {  
+        filtered = data.transactions.filter(t =>   
+            t.mode === "dette_client" ||   
+            normalize(t.desc || "").includes("dette client")  
+        );  
+    }   
+    else if(filter === 'dette_moi') {  
+        filtered = data.transactions.filter(t =>   
+            t.mode === "dette_moi" ||   
+            normalize(t.desc || "").includes("dette moi")  
+        );  
+    }
+    else if(filter === 'depenses') {
+        filtered = data.transactions.filter(t => 
+            t.mode === "depense" || 
+            t.isDepense === true ||
+            normalize(t.operator || "").includes("depense") ||
+            normalize(t.desc || "").includes("depense")
+        );
+    }
+  
+    let html = `<div style="display:flex; flex-direction:column; gap:12px;">`;  
+  
+    html += filtered.map((t) => {  
+        const realIdx = data.transactions.indexOf(t);
+        const desc = t.desc || "";  
+
+        // --- 1. DESIGN SPÉCIAL POUR LES TRANSFERTS ---
+        if (t.mode === 'transfert' && t.transferDetails) {
+            const d = t.transferDetails;
+            return `
+            <div style="background:#f0f9ff; border-radius:16px; padding:12px; box-shadow:0 6px 18px rgba(0,0,0,0.06); border-left:5px solid #0ea5e9;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <span style="font-size:11px; color:#64748b;">${t.date}</span>
+                    ${isAdmin ? `
+                    <div style="display:flex; gap:5px;">
+                        <button onclick="cancelTransaction(${realIdx})" style="background:#f59e0b;color:#fff;border:none;padding:4px 8px;border-radius:6px;font-size:10px;cursor:pointer;">↩ Annuler</button>
+                        <button onclick="deleteTransaction(${realIdx})" style="background:#ef4444;color:#fff;border:none;padding:4px 8px;border-radius:6px;font-size:10px;cursor:pointer;">Suppr</button>
+                    </div>` : ""}
+                </div>
+                <div style="display:flex; justify-content:space-around; align-items:center; background:white; padding:10px; border-radius:10px;">
+                    <div style="text-align:center;">
+                        <div style="font-size:9px; color:#64748b;">SOURCE</div>
+                        <div style="font-weight:bold; font-size:13px;">${d.sourceName}</div>
+                        <div style="color:#ef4444; font-weight:bold;">-${fmt(d.sAmt)} ${d.sc}</div>
+                    </div>
+                    <div style="font-size:20px; color:#0ea5e9;">➔</div>
+                    <div style="text-align:center;">
+                        <div style="font-size:9px; color:#64748b;">DESTINATION</div>
+                        <div style="font-weight:bold; font-size:13px;">${d.destName}</div>
+                        <div style="color:#16a34a; font-weight:bold;">+${fmt(d.dAmt)} ${d.dc}</div>
+                    </div>
+                </div>
+                <div style="font-size:10px; margin-top:5px; color:#0369a1; text-align:center; font-style:italic;">${desc}</div>
+            </div>`;
+        }
+
+        // --- 2. DESIGN SPÉCIAL POUR LES RÈGLEMENTS DE DETTES ---
+        if (t.isReglement && t.debtBefore) {
+            const b = t.debtBefore;
+            const a = t.debtAfter;
+            const p = t.payDetail;
+            const estSolde = (Math.abs(a.USD) < 0.1 && Math.abs(a.CDF) < 100);
+
+            return `
+            <div style="background:#fff7ed; border-radius:16px; padding:12px; box-shadow:0 6px 18px rgba(0,0,0,0.06); border-left:5px solid #eab308;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <span style="font-size:11px; color:#64748b;">${t.date}</span>
+                    <span style="font-weight:bold; color:#854d0e; font-size:12px;">💰 RÈGLEMENT DETTE</span>
+                    ${isAdmin ? `<button onclick="cancelTransaction(${realIdx})" style="background:#f59e0b;color:#fff;border:none;padding:4px 8px;border-radius:6px;font-size:10px;cursor:pointer;">↩ Annuler</button>` : ""}
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1.5fr 1fr; gap:8px; align-items:center; background:white; padding:10px; border-radius:10px;">
+                    <div style="text-align:center;">
+                        <div style="font-size:9px; color:#9a3412; font-weight:bold;">ÉTAIT DÛ</div>
+                        <div style="font-weight:bold; font-size:13px; color:#0f172a;">${fmt(b.USD)}$</div>
+                        <div style="font-size:11px; color:#475569;">${fmt(b.CDF)} FC</div>
+                    </div>
+                    <div style="font-size:10px; border-left:1px solid #fed7aa; border-right:1px solid #fed7aa; padding:0 8px;">
+                        <div style="font-weight:bold; color:#166534; margin-bottom:3px; text-transform:uppercase;">Payé par ${t.person} :</div>
+                        <div style="display:flex; justify-content:space-between;"><span>Sur $:</span> <b>${fmt(p.onUsd.usd)}$ + ${fmt(p.onUsd.cdf)}FC</b></div>
+                        <div style="display:flex; justify-content:space-between;"><span>Sur FC:</span> <b>${fmt(p.onCdf.usd)}$ + ${fmt(p.onCdf.cdf)}FC</b></div>
+                    </div>
+                    <div style="text-align:center;">
+                        ${estSolde ? 
+                            `<div style="background:#16a34a; color:white; padding:6px; border-radius:8px; font-weight:bold; font-size:12px; border:2px solid #bcf0da;">SOLDE</div>` : 
+                            `<div style="font-size:9px; color:#64748b; font-weight:bold;">RESTE À PAYER</div>
+                             <div style="font-weight:bold; font-size:13px; color:#dc2626;">${fmt(a.USD)}$</div>
+                             <div style="font-size:11px; color:#dc2626;">${fmt(a.CDF)} FC</div>`
+                        }
+                    </div>
+                </div>
+                <div style="font-size:10px; margin-top:5px; color:#9a3412; text-align:center; font-style:italic;">${desc}</div>
+            </div>`;
+        }
+
+        // --- 3. DESIGN SPÉCIAL POUR LES DÉPENSES ---
+        if (t.mode === 'depense' || t.isDepense || normalize(desc).includes("depense")) {
+            let stockDisplay = "";
+            const qteStock = parseFloat(t.stk || (t.impacts && t.impacts.stock) || 0);
+            if(qteStock !== 0) {
+                const sColor = qteStock > 0 ? "#16a34a" : "#ef4444";
+                const sSign = qteStock > 0 ? "+" : "";
+                stockDisplay = `<div style="color:${sColor}; font-weight:bold; font-size:10px; margin-top:2px;">Stock: ${sSign}${fmt(qteStock)}</div>`;
+            }
+
+            return `
+            <div style="background:#fef2f2; border-radius:16px; padding:12px; box-shadow:0 6px 18px rgba(0,0,0,0.06); border-left:5px solid #ef4444;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <span style="font-size:11px; color:#64748b;">${t.date}</span>
+                    <span style="font-weight:bold; color:#b91c1c; font-size:12px;">🚫 SORTIE / DÉPENSE</span>
+                    ${isAdmin ? `
+                    <div style="display:flex; gap:5px;">
+                        <button onclick="cancelTransaction(${realIdx})" style="background:#f59e0b;color:#fff;border:none;padding:4px 8px;border-radius:6px;font-size:10px;cursor:pointer;">↩ Annuler</button>
+                        <button onclick="deleteTransaction(${realIdx})" style="background:#ef4444;color:#fff;border:none;padding:4px 8px;border-radius:6px;font-size:10px;cursor:pointer;">Suppr</button>
+                    </div>` : ""}
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; background:white; padding:10px; border-radius:10px;">
+                    <div>
+                        <div style="font-weight:bold; font-size:13px; color:#1e293b;">${t.operator || "-"}</div>
+                        <div style="font-size:11px; color:#64748b;">${desc}</div>
+                        ${stockDisplay}
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:16px; font-weight:bold; color:#ef4444;">-${fmt(t.amtSIM || t.amt)} ${t.curSIM || t.cur}</div>
+                        <div style="font-size:10px; color:#94a3b8;">Cash: ${fmt(t.usdCash || 0)}$ | ${fmt(t.cdfCash || 0)}FC</div>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        // --- 4. DESIGN CLASSIQUE (VENTES, DEPOTS, RETRAITS, DETTES) ---
+        const parts = desc.split("-");  
+        const type = parts[0] ? parts[0].trim() : "";  
+        const rest = parts[1] ? parts[1].trim() : "";  
+        let opNameFromDesc = "";  
+        let motif = rest;  
+        
+        if(rest.includes("(")) {  
+            opNameFromDesc = rest.split("(")[0].trim();  
+            motif = rest.split("(")[1].replace(")", "").trim();  
+        } else { opNameFromDesc = rest; }  
+  
+        let finalPerson = t.person || "";
+
+// 🔥 SÉCURISATION MAX : toujours récupérer depuis source fiable
+if (!finalPerson && t.desc && t.desc.includes("NOM:")) {
+    finalPerson = t.desc.split("NOM:")[1].split("|")[0].trim();
+}
+
+// 🔥 DERNIER RECOURS
+if (!finalPerson && t.payDetail && t.person) {
+    finalPerson = t.person;
+}
+  
+        let isOpDette = normalize(t.operator || "").includes("dette");
+
+        let isModeDette = (
+             t.mode === "dette_client" || 
+             t.mode === "dette_moi" || 
+             t.isDette === true || 
+             t.isReglement === true ||
+             isOpDette ||
+             normalize(desc || "").includes("creance") ||
+             normalize(type || "").includes("dette")
+);
+
+        // --- Remplace l'ancien bloc de calcul du reste par celui-ci ---
+
+         let resteTxt = "✔ Cash"; 
+         let resteColor = "#16a34a";  
+
+// 1. On vérifie si la transaction a une "photo" du solde (Snapshot)
+if (t.snapshotDette) {
+    const duUSD = t.snapshotDette.USD;
+    const duCDF = t.snapshotDette.CDF;
+    
+    // On considère que c'est payé si le reste est insignifiant
+    const isCleared = Math.abs(duUSD) < 0.1 && Math.abs(duCDF) < 100;
+
+    if (isCleared) {
+        resteTxt = "✔ SOLDÉ"; 
+        resteColor = "#16a34a";
+    } else {
+        resteTxt = `Reste: ${fmt(duUSD)}$ | ${fmt(duCDF)}FC`;
+        resteColor = "#dc2626"; 
+    }
+} 
+// 2. Sécurité pour les ANCIENNES transactions (avant la mise à jour)
+else if (t.person && (t.mode?.includes("dette") || t.typeDette)) {
+    resteTxt = "Ancienne dette";
+    resteColor = "#6b7280"; // Gris pour les données historiques non capturées
+}
+
+// Si c'est une ancienne transaction sans snapshot, on garde l'ancien calcul par défaut
+else if (finalPerson && isModeDette) {  
+    const typeDette = (t.mode === "dette_moi" || (t.typeDette && t.typeDette.includes("moi"))) ? "dette moi" : "dette client";
+    const debtKey = `${normalize(typeDette)}_${normalize(finalPerson)}`;  
+    const currentDebt = data.debts[debtKey] || { USD: 0, CDF: 0 };
+    
+    resteTxt = `Reste: ${fmt(currentDebt.USD)}$ | ${fmt(currentDebt.CDF)}FC`;
+    resteColor = "#dc2626"; 
+}
+
+        let stockDisplay = "";
+        const qteStock = parseFloat(t.stk || (t.impacts && t.impacts.stock) || 0);
+        if(qteStock !== 0) {
+            const sColor = qteStock > 0 ? "#16a34a" : "#ef4444";
+            const sSign = qteStock > 0 ? "+" : "";
+            stockDisplay = `<div style="color:${sColor}; font-weight:bold; font-size:10px; margin-top:2px;">Stock: ${sSign}${fmt(qteStock)}</div>`;
+        }
+
+        let icon = "📄"; 
+        if(normalize(type).includes("retrait")) icon = "💸";  
+        else if(normalize(type).includes("depot")) icon = "💰";  
+        else if(normalize(type).includes("vente")) icon = "🛒";  
+        else if(isModeDette) icon = "📝";
+
+        const hasCash = (t.usdCash > 0 || t.cdfCash > 0);
+        const cUSD = (t.commission && t.commission.usd) ? t.commission.usd : 0;
+        const cCDF = (t.commission && t.commission.cdf) ? t.commission.cdf : 0;
+
+        return `  
+        <div style="background:#ffffff; border-radius:16px; padding:12px; box-shadow:0 6px 18px rgba(0,0,0,0.06); border-left:5px solid ${isModeDette ? '#f59e0b' : '#0ea5e9'};">  
+            ${isAdmin ? `  
+            <div style="display:flex; gap:6px; justify-content:flex-end; margin-bottom: 5px;">  
+                <button onclick="cancelTransaction(${realIdx})" style="background:#f59e0b;color:#fff;border:none;padding:5px 10px;border-radius:8px;font-size:10px;cursor:pointer;">↩ Annuler</button>  
+                <button onclick="deleteTransaction(${realIdx})" style="background:#ef4444;color:#fff;border:none;padding:5px 10px;border-radius:8px;font-size:10px;cursor:pointer;">Suppr</button>  
+            </div>` : ""}  
+            <div style="display:grid; grid-template-columns: 1.2fr 1fr 1fr 1.6fr 1.5fr 1fr; gap:6px; align-items:center; font-size:12px;">  
+                <div style="color:#64748b;">${t.date}</div>  
+                <div style="font-weight:bold; color:#1e293b;">${t.operator || opNameFromDesc}</div>  
+                <div style="background:#f1f5f9; padding:3px 6px; border-radius:6px; text-align:center; font-size:10px; border:1px solid #e2e8f0;">  
+                    ${icon} ${type || "-"} ${stockDisplay} 
+                </div>  
+                <div style="color:#475569; font-weight:500;">${motif || "-"}</div>  
+                
+                <div style="line-height:1.3;">  
+                    <div style="font-weight:bold; color:#0f172a;">SIM: ${fmt(t.amtSIM || t.amt)} ${t.curSIM || t.cur}</div>
+                    ${hasCash ? 
+                        `<div style="color:#16a34a; font-size:10px; font-weight:700;">CASH: ${fmt(t.usdCash || 0)}$ | ${fmt(t.cdfCash || 0)}FC</div>` : 
+                        `<div style="color:#94a3b8; font-size:9px; font-style:italic;">Crédit pur</div>`
+                    }
+                    ${(cUSD > 0 || cCDF > 0) ? 
+                        `<div style="color:#0ea5e9; font-size:10px; font-weight:bold; background:#f0f9ff; border-radius:4px; padding:1px 3px;">+ COM: ${fmt(cUSD)}$ | ${fmt(cCDF)}FC</div>` : 
+                        ""
+                    }
+                </div>  
+
+                <div style="font-weight:800; color:${resteColor}; text-align:right; font-size:11px;">${resteTxt}</div>  
+            </div>  
+        </div>`;  
+    }).join("");  
+  
+    html += `</div>`;  
+    list.innerHTML = html;  
+    document.getElementById("historyModal").classList.remove("hidden");     
+};
+
+window.cancelTransaction = (index) => {  
+    if(!confirm("Annuler cette opération ?")) return;  
+  
+    const t = data.transactions[index];  
+    if(!t) return;
+
+    // 1. GESTION DU MODE VIRTUEL (INTER-SIM) - CRUCIAL
+    // Si l'opération a utilisé une autre SIM pour payer, on rend l'argent à cette SIM
+    if(t.impacts && t.impacts.virtuel && t.impacts.virtuel.opIdx !== null) {
+        const v = t.impacts.virtuel;
+        const opSourceSecondaire = data.operators[v.opIdx];
+        if(opSourceSecondaire) {
+            opSourceSecondaire.USD += v.USD; // On remet les USD
+            opSourceSecondaire.CDF += v.CDF; // On remet les FC
+        }
+    }
+
+    // 2. CAS SPÉCIFIQUE DU TRANSFERT / CHANGE
+    if(t.mode === 'transfert' && t.impacts && t.impacts.isTransfer) {
+        const { source, dest } = t.impacts;
+
+        // On remet l'argent à la source initiale
+        if(source.idx === "caisse") data.caisse[source.cur] += source.amt;
+        else if(data.operators[source.idx]) data.operators[source.idx][source.cur] += source.amt;
+
+        // On retire l'argent de la destination
+        if(dest.idx === "caisse") data.caisse[dest.cur] -= dest.amt;
+        else if(data.operators[dest.idx]) data.operators[dest.idx][dest.cur] -= dest.amt;
+
+        alert("Transfert/Change inversé avec succès ✅");
+    } 
+    else {
+        // 3. LOGIQUE NORMALE (Vente, Retrait, Dépôt, Dette, Dépense)
+        // Le paramètre "true" inverse les impacts dans applyImpacts
+        applyImpacts(t, true);
+    }
+  
+    // Suppression définitive de la transaction
+    data.transactions.splice(index, 1);  
+    
+    save();  
+    render();  
+    showFullHistory("general");  
+    alert("Opération annulée et soldes mis à jour !");
+};
+
+    window.quickEditOp = (i) => {    
+        const op = data.operators[i];    
+        const nName = prompt("Nom :", op.name), nUSD = prompt("USD :", op.USD), nCDF = prompt("CDF :", op.CDF), nStk = prompt("SIM :", op.stock);    
+        if(nName !== null) { data.operators[i] = { ...op, name: nName, USD: parseFloat(nUSD)||0, CDF: parseFloat(nCDF)||0, stock: parseInt(nStk)||0 }; save(); }    
+    };  
+  
+    window.calcDest = () => {    
+        const amt = parseFloat(document.getElementById("srcAmt").value) || 0, t = parseFloat(data.taux) || 1;    
+        const sc = document.getElementById("srcCurr").value, dc = document.getElementById("destCurr").value;    
+        document.getElementById("destAmt").value = ((sc==="USD" && dc==="CDF") ? amt * t : (sc==="CDF" && dc==="USD") ? amt / t : amt).toFixed(2);    
+    };    
+  
+  window.executeGlobalChange = () => {    
+    const sIdx = document.getElementById("srcWallet").value;
+    const dIdx = document.getElementById("destWallet").value;    
+    const sAmt = parseFloat(document.getElementById("srcAmt").value) || 0;
+    const dAmt = parseFloat(document.getElementById("destAmt").value) || 0;    
+    const sc = document.getElementById("srcCurr").value;
+    const dc = document.getElementById("destCurr").value;
+    const motif = document.getElementById("transferMotif").value || "Change/Transfert";
+
+    // --- NOUVELLE CONDITION DE SÉCURITÉ ---
+    // On bloque si : 
+    // 1. Le montant est 0
+    // 2. OU SI (le compte est le même ET la devise est la même)
+    if (!sAmt || (sIdx === dIdx && sc === dc)) {
+        alert("Action impossible : vous essayez de transférer la même devise sur le même compte.");
+        return;
+    }
+
+    const sourceName = sIdx === "caisse" ? "Caisse" : data.operators[sIdx].name;
+    const destName = dIdx === "caisse" ? "Caisse" : data.operators[dIdx].name;
+
+    // Retrait de la source
+    if(sIdx === "caisse") {
+        data.caisse[sc] -= sAmt; 
+    } else {
+        data.operators[sIdx][sc] -= sAmt;
+    }
+
+    // Ajout à la destination
+    if(dIdx === "caisse") {
+        data.caisse[dc] += dAmt; 
+    } else {
+        data.operators[dIdx][dc] += dAmt;
+    }
+
+    const t = { 
+        id: Date.now(),
+        date: new Date().toLocaleString(), 
+        desc: sIdx === dIdx ? `CHANGE: ${sourceName} (${sc} ➔ ${dc})` : `TRANSFERT: ${sourceName} ➔ ${destName}`, 
+        amt: sAmt, 
+        cur: sc, 
+        mode: 'transfert',
+        transferDetails: {
+            sIdx, dIdx, sAmt, dAmt, sc, dc, sourceName, destName
+        },
+        impacts: {
+            isTransfer: true,
+            source: { idx: sIdx, amt: sAmt, cur: sc },
+            dest: { idx: dIdx, amt: dAmt, cur: dc }
+        }
+    };
+
+    data.transactions.unshift(t);    
+    save(); 
+    render();
+    
+    // Nettoyage
+    document.getElementById("srcAmt").value = "";
+    document.getElementById("destAmt").value = "";
+    
+    alert(sIdx === dIdx ? "Change effectué avec succès ✅" : "Transfert effectué ✅");
+};
+  
+    window.updateAdminBasics = () => {    
+        const tX = document.getElementById("newTaux").value, uX = document.getElementById("editCashUSD").value, cX = document.getElementById("editCashCDF").value;    
+        if(tX) data.taux = parseFloat(tX); if(uX) data.caisse.USD = parseFloat(uX); if(cX) data.caisse.CDF = parseFloat(cX);    
+        save(); alert("Mis à jour !");    
+    };  
+  
+    window.addOperator = () => {    
+    const op = { 
+        name: document.getElementById("newOpName").value.trim(), 
+        USD: parseFloat(document.getElementById("initUSD").value) || 0, 
+        CDF: parseFloat(document.getElementById("initCDF").value) || 0, 
+        // --- AMÉLIORATION : Accepter les stocks décimaux (ex: 0.5) ---
+        stock: parseFloat(document.getElementById("initStock").value) || 0, 
+        prixAchat: parseFloat(document.getElementById("initPrice").value) || 0 
+    };    
+
+    if(op.name) { 
+        data.operators.push(op); 
+        save(); 
+        alert(`Compte "${op.name}" créé avec succès`); 
+        
+        // --- AMÉLIORATION : Vider les champs après création ---
+        ["newOpName", "initUSD", "initCDF", "initStock", "initPrice"].forEach(id => {
+            if(document.getElementById(id)) document.getElementById(id).value = "";
+        });
+
+        render(); // Mettre à jour l'affichage immédiatement
+    } else {
+        alert("Veuillez entrer au moins un nom pour le compte.");
+    }
+};
+    
+    window.addType = () => {    
+        const name = document.getElementById("newTypeName").value, impO = parseInt(document.getElementById("impO").value), impC = parseInt(document.getElementById("impC").value), impS = parseInt(document.getElementById("impS").value);    
+        if(name) { data.types.push({ name, impO, impC, impS }); save(); alert("Type créé"); }    
+    };  
+  
+    window.deleteTransaction = (idx) => { if(confirm("Supprimer ?")) { data.transactions.splice(idx, 1); save(); window.showFullHistory('general'); } };  
+    window.closeHistory = () => document.getElementById("historyModal").classList.add("hidden");    
+    window.updateDefaultStockMove = () => { const ty = data.types[document.getElementById("typeSelect").value]; if(ty) document.getElementById("stkMove").value = ty.impS || 0; };  
+    window.exportHistory = () => { let content = "MKA PRO - HISTORIQUE\n"; data.transactions.forEach(t => content += `${t.date} | ${t.desc} | ${t.amt} ${t.cur}\n`); const blob = new Blob([content], {type:"text/plain"}); const a = document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="mka_history.txt"; a.click(); };  
+  
+    function render() {    
+    const t = parseFloat(data.taux) || 1;    
+    document.getElementById("caisseUSD").innerText = fmt(data.caisse.USD);    
+    document.getElementById("caisseCDF").innerText = fmt(data.caisse.CDF);    
+    document.getElementById("rateM").innerText = t;    
+
+    // 1. Valeur du Tiroir (Cash réel)
+    let totalCaisse = (parseFloat(data.caisse.USD) || 0) + ((parseFloat(data.caisse.CDF) || 0) / t);    
+    
+    let totalSims = 0;        // Capital dans les SIM + Valeur de leur stock
+    let totalDetteClient = 0; // Ce que les clients vous doivent (Actif)
+    let totalDetteMoi = 0;    // Ce que vous devez (Passif)
+    let totalS = 0;           // Nombre total de SIM en stock
+
+    // 2. Calcul et Affichage des Balances Opérateurs
+    document.getElementById("operatorBalances").innerHTML = data.operators.map((o, i) => {    
+        const usd = parseFloat(o.USD) || 0;
+        const cdf = parseFloat(o.CDF) || 0;
+        const stk = parseFloat(o.stock) || 0; // Acceptation des décimales pour le stock
+        const px = parseFloat(o.prixAchat) || 0;    
+        const n = normalize(o.name);
+        const valEquivUSD = usd + (cdf / t);    
+        
+        let cardClass = "";
+
+        if(n.includes("dette moi")) { 
+            cardClass = "negative";
+            totalDetteMoi += valEquivUSD; 
+        }     
+        else if(n.includes("dette client")) { 
+            cardClass = "negative"; 
+            totalDetteClient += valEquivUSD; 
+        }     
+        else if(n.includes("depense")) {
+            cardClass = "negative";
+            // IMPORTANT : On ne l'ajoute nulle part dans la VNC. 
+            // C'est de l'argent déjà "perdu" ou consommé.
+        }
+        else { 
+            // Compte actif standard (Airtel, Orange, etc.)
+            // On ajoute le solde cash de la SIM + la valeur marchande du stock de cartes
+            totalSims += (valEquivUSD + (stk * px)); 
+        }    
+        
+        totalS += stk;    
+        return `<div class="card ${cardClass}"><b>${o.name}</b>: ${fmt(o.USD)}$ | ${fmt(o.CDF)}FC<br><small>Stock: ${fmt(o.stock)} SIM</small></div>`;    
+    }).join("");    
+
+    // 3. LA FORMULE DE LA VALEUR NETTE COMPTABLE (VNC)
+    // VNC = (Cash Tiroir) + (Capital SIM & Stock) + (Dettes Clients) - (Dettes à payer)
+    const vncFinale = totalCaisse + totalSims + totalDetteClient - totalDetteMoi;
+
+    document.getElementById("totalVNC").innerText = fmt(vncFinale) + " $";    
+    document.getElementById("totalStock").innerText = fmt(totalS);    
+
+    // 4. Mise à jour des listes déroulantes (Menus Select)
+    const opOps = data.operators.map((o, i) => `<option value="${i}">${o.name}</option>`).join("");    
+    document.getElementById("operatorSelect").innerHTML = opOps;    
+    document.getElementById("srcWallet").innerHTML = '<option value="caisse">Caisse</option>' + opOps;    
+    document.getElementById("destWallet").innerHTML = '<option value="caisse">Caisse</option>' + opOps;    
+    document.getElementById("paySimSelect").innerHTML = opOps;    
+    document.getElementById("settleOpIdx").innerHTML = opOps;    
+    document.getElementById("settleDest").innerHTML = '<option value="caisse">🏠 CAISSE (CASH)</option>' + opOps;  
+    
+    // 5. Interface Administration
+    document.getElementById("adminOpEditList").innerHTML = data.operators.map((o,i) => `
+        <div class="card">
+            ${o.name}
+            <button class="btn-del" onclick="deleteOperator(${i})">X</button>
+            <button onclick="quickEditOp(${i})" style="width:auto; padding:2px 8px; font-size:10px; background:#0ea5e9; border-radius:5px;">EDIT</button>
+        </div>`
+    ).join("");    
+
+    document.getElementById("typeSelect").innerHTML = data.types.map((t,i) => `<option value="${i}">${t.name}</option>`).join("");    
+    document.getElementById("adminTypeList").innerHTML = data.types.map((t,i) => `
+        <div class="card">
+            ${t.name}
+            <button class="btn-del" onclick="deleteType(${i})">X</button>
+        </div>`
+    ).join("");    
+}
+
+    window.deleteOperator = function(index){
+    if(!confirm("Supprimer cet opérateur ?")) return;
+
+    data.operators.splice(index, 1);
+
+    save();
+    render();
+};
+
+window.deleteType = function(index){
+    if(!confirm("Supprimer ce type ?")) return;
+
+    data.types.splice(index, 1);
+
+    save();
+    render();
+};
+
+</script>  </body>    
+</html>   
+
+
