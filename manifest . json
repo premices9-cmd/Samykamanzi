@@ -1,0 +1,18 @@
+{
+  "name": "KM's Gestion Mobile",
+  "short_name": "KM's",
+  "start_url": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#2563eb",
+  "description": "Application de gestion mobile sécurisée KM's",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
